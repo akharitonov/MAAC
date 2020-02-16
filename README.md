@@ -53,6 +53,8 @@ docker run \
  maac:latest
 ```
 
+Note. Depending on your docker configuration of nvidia, you might need to also pass `--gpus` argument to the `run` command (Example: `--gpus all`). Refer to the [official nvidia-docker documentation](https://github.com/NVIDIA/nvidia-docker) for more information.
+
 After the container experiments finish, the container quits. If you didn't supply a valid Dropbox token, you'll need to get the results from the mounted volume. You can access a volume with a *dummy* container attacched to that volume. Example using [Docker `cp`](https://docs.docker.com/engine/reference/commandline/cp/):
 ```
 docker container create --name maac-dummy \

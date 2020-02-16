@@ -44,7 +44,7 @@ RUN mkdir -p /results
 
 WORKDIR /code
 ADD . .
-RUN bash ./scripts/create_conda_env.sh
+RUN bash ./scripts/create_conda_env.sh gpu
 RUN bash ./scripts/add_dropbox.sh
 
 

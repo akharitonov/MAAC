@@ -19,6 +19,7 @@ parser.add_argument("--dbox-token", type=str, default=None, required=False,  # h
                     help="App token for Dropbox where results should be uploaded")
 parser.add_argument("--dbox-dir", type=str, default='/experiment', required=False,
                     help="Dropbox folder where results should be uploaded")
+parser.add_argument('--use_gpu', action='store_true')
 
 args = parser.parse_args()
 
@@ -163,5 +164,8 @@ for scenario in scenarios:
             .format(scenario, 
                     scenario, 
                     "{}_{}".format(c_folder, str(pfx)))
+        if args.use_gpu:
+            ivk_cmd += "--use_gpu "
+            
         if execute_command(ivk_cmd):
             upload_to_dropbox(c_folder, 'maac/{}_{}'.format(c_run_title, pfx))
