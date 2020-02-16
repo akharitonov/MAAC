@@ -127,6 +127,8 @@ class AttentionCritic(nn.Module):
             # iterate over agents
             for i, a_i, selector in zip(range(len(agents)), agents, curr_head_selectors):
                 keys = [k for j, k in enumerate(curr_head_keys) if j != a_i]
+                if len(keys) < 1:  # skip if there are no other agents of the same type
+                    continue
                 values = [v for j, v in enumerate(curr_head_values) if j != a_i]
                 # calculate attention across agents
                 attend_logits = torch.matmul(selector.view(selector.shape[0], 1, -1),
@@ -142,8 +144,11 @@ class AttentionCritic(nn.Module):
         # calculate Q per agent
         all_rets = []
         for i, a_i in enumerate(agents):
-            head_entropies = [(-((probs + 1e-8).log() * probs).squeeze().sum(1)
-                               .mean()) for probs in all_attend_probs[i]]
+            if len(all_attend_probs[i]):  # account for the fact that there are no other agents of the same type
+                head_entropies = []
+            else:
+                head_entropies = [(-((probs + 1e-8).log() * probs).squeeze().sum(1)
+                                   .mean()) for probs in all_attend_probs[i]]
             agent_rets = []
             critic_in = torch.cat((s_encodings[i], *other_all_values[i]), dim=1)
             all_q = self.critics[a_i](critic_in)
