@@ -1,3 +1,83 @@
+# Multi-Actor-Attention-Critic - code and docker images for running experiments
+
+## Choose a Docker image to build.
+
+### Docker image of the original dependencies (CPU)
+This docker image contains the dependencies suggested in the original publication. Many of these dependencies are heavily outdated, a more up to date image is also provided (described further below). 
+
+```
+docker build -t maac:latest -f original.Dockerfile .
+```
+
+### Docker image of the original dependencies (CUDA)
+This docker image contains the dependencies suggested in the original publication. Many of these dependencies are heavily outdated, a more up to date image is also provided (described further below). 
+
+```
+docker build -t maac:latest -f cuda-original.Dockerfile .
+```
+
+### Docker image with more relevant dependencies versions (CPU)
+
+This docker image depends on versions of MAAC dependencies that were released recently, yet compatible with MAAC code. 
+
+```
+docker build -t maac:latest -f cpu.Dockerfile .
+```
+
+### Docker image with more relevant dependencies versions (CUDA)
+
+This docker image depends on versions of MAAC dependencies that were released recently, yet compatible with MAAC code. 
+
+```
+docker build -t maac:latest -f cuda.Dockerfile .
+```
+
+
+## Start the container
+
+Environment parameters:
+* `repeats` - number of experiment repetitions
+* `dboxtoken` - (optional) your Dropbox token
+* `dboxdir` - directory in the Dropbox where the results will be uploaded. Must be empty or non existent. **Should only be defined when `dboxtoken` is supplied**
+
+If you want the results to be uploaded to Dropbox, you'll need to setup an app in your account [App console](https://www.dropbox.com/developers/apps) in order to get a token.
+
+```
+docker run \
+ -e repeats=5 \
+ -e dboxtoken=YOUR_TOKEN \
+ -e dboxdir=/epxeriment_1 \
+ --name maac \
+ --shm-size=4gb \
+ -v maac-vres:/results \
+ maac:latest
+```
+
+After the container experiments finish, the container quits. If you didn't supply a valid Dropbox token, you'll need to get the results from the mounted volume. You can access a volume with a *dummy* container attacched to that volume. Example using [Docker `cp`](https://docs.docker.com/engine/reference/commandline/cp/):
+```
+docker container create --name maac-dummy \
+    -v maac-vres:/results \ 
+    hello-world
+
+mkdir -p ./results  
+
+docker cp maac-dummy:/results ./results
+
+docker rm maac-dummy
+```
+
+Cleanup
+```
+docker stop maac
+docker rm maac
+```
+
+
+***
+Fork of [shariqiqbal2810/MAAC](https://github.com/shariqiqbal2810/MAAC)
+***
+***
+# Original README
 # Multi-Actor-Attention-Critic
 Code for [*Actor-Attention-Critic for Multi-Agent Reinforcement Learning*](https://arxiv.org/abs/1810.02912) (Iqbal and Sha, ICML 2019)
 
