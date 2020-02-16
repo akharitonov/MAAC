@@ -26,7 +26,7 @@ def make_parallel_env(env_id, n_rollout_threads, seed):
         return SubprocVecEnv([get_env_fn(i) for i in range(n_rollout_threads)])
 
 def run(config):
-    model_dir = Path('./models') / config.env_id / config.model_name
+    model_dir = Path(config.model_dir) / config.env_id / config.model_name
     if not model_dir.exists():
         run_num = 1
     else:
@@ -114,10 +114,13 @@ def run(config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("env_id", help="Name of environment")
-    parser.add_argument("model_name",
+    parser.add_argument("--env_id", help="Name of environment")
+    parser.add_argument("--model_name",
                         help="Name of directory to store " +
                              "model/training contents")
+    parser.add_argument("--model_dir",
+                        default="./models",
+                        help="Absolute path to the base models store")
     parser.add_argument("--n_rollout_threads", default=12, type=int)
     parser.add_argument("--buffer_length", default=int(1e6), type=int)
     parser.add_argument("--n_episodes", default=50000, type=int)
