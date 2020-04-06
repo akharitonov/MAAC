@@ -39,7 +39,7 @@ cd "$base_dir"
 
 # Install MPE
 # Intall MPE with dependencies
-git clone --single-branch --branch maac https://github.com/jcridev/multiagent-particle-envs.git "$base_dir/MPE"
+git clone --single-branch --branch maac https://github.com/akharitonov/multiagent-particle-envs.git "$base_dir/MPE"
 cd "$base_dir/MPE"
 pip install --progress-bar off -e .
 
