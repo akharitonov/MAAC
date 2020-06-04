@@ -46,7 +46,7 @@ scenarios = [
     "simple_push",
     "simple_tag",
     "simple_crypto",
-    "simple_adversary"
+    "simple_adversary",
     "multi_speaker_listener",  # custom for MAAC
     "fullobs_collect_treasure",  # custom for MAAC
 ]
