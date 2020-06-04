@@ -34,6 +34,10 @@ parser.add_argument("--dbox-dir",
 parser.add_argument('--use_gpu',
                     action='store_true')
 
+parser.add_argument("--scenario",
+                    type=int, default=-1,
+                    help="Selected scenario to run. -1 will run all, [0, 7] correspond to the index in scenarios list.")
+
 args = parser.parse_args()
 
 scenarios = [
@@ -46,6 +50,9 @@ scenarios = [
     "multi_speaker_listener",  # custom for MAAC
     "fullobs_collect_treasure",  # custom for MAAC
 ]
+
+if args.scenario > 0:
+    scenarios = [scenarios[args.scenario]]
 
 log_file = os.path.join(args.local_dir, "_log.txt")
 
@@ -139,8 +146,9 @@ def upload_to_dropbox(run_result_folder, experiment_name):
         if os.path.isfile(uploaded_marker_file):
             continue  # this directory was already uploaded
 
-        relevant_file = [s for s in files if s.startwith(f_result_prefix)]
+        relevant_file = [s for s in files if s.startswith(f_result_prefix)]
         if any(relevant_file):
+            relevant_file = relevant_file[0]
             full_f_result = os.path.join(root, relevant_file)
             if not cleanup_only:
                 # If Dropbox upload is active for this run upload relevant files
@@ -163,95 +171,101 @@ def upload_to_dropbox(run_result_folder, experiment_name):
             except Exception as err:
                 print(err)
                 write_to_log_ts(traceback.format_exc(), True)
+        else:
+            write_to_log_ts("Found no relevant files", False)
 
 
 maac_results_folder = os.path.join(args.local_dir, "maac/")
+try:
+    # Varying replay buffer
+    var_replay_buffer_variations = [1000000, 100000, 10000]  # first one is the default value
+    var_rb_res_folder = os.path.join(maac_results_folder, "rb/")
+    for scenario in scenarios:
+        for rb_var in var_replay_buffer_variations:
+            c_run_title = "maac_{}_rb_{}".format(scenario, rb_var)
+            c_folder = os.path.join(var_rb_res_folder, c_run_title)
+            for pfx in range(args.repeat):
+                ivk_cmd = "python main.py " \
+                          "--env_id={} " \
+                          "--model_name={} " \
+                          "--model_dir={} " \
+                          "--buffer_length={}" \
+                    .format(scenario,
+                            scenario,
+                            "{}_{}".format(c_folder, str(pfx)),
+                            rb_var)
+                if args.use_gpu:
+                    ivk_cmd += "--use_gpu "
 
-# Varying replay buffer
-var_replay_buffer_variations = [1000000, 100000, 10000]  # first one is the default value
-var_rb_res_folder = os.path.join(maac_results_folder, "rb/")
-for scenario in scenarios:
-    for rb_var in var_replay_buffer_variations:
-        c_run_title = "maac_{}_rb_{}".format(scenario, rb_var)
-        c_folder = os.path.join(var_rb_res_folder, c_run_title)
+                if execute_command(ivk_cmd):
+                    upload_to_dropbox(c_folder, 'maac/{}_{}'.format(c_run_title, pfx))
+
+    # Standard experiments with varying gamma
+    var_gamma_variations = [0.95, 0.75, 0.50, 0.35, 0.15]
+    var_gamma_res_folder = os.path.join(maac_results_folder, "gamma/")
+    for scenario in scenarios:
+        for gamma_var in var_gamma_variations:
+            c_run_title = "maac_{0}_gamma_{1:1.2e}".format(scenario, gamma_var)
+            c_folder = os.path.join(var_gamma_res_folder, c_run_title)
+            for pfx in range(args.repeat):
+                ivk_cmd = "python main.py " \
+                          "--env_id={} " \
+                          "--model_name={} " \
+                          "--model_dir={} " \
+                          "--gamma={}"\
+                    .format(scenario,
+                            scenario,
+                            "{}_{}".format(c_folder, str(pfx)),
+                            gamma_var)
+                if args.use_gpu:
+                    ivk_cmd += "--use_gpu "
+
+                if execute_command(ivk_cmd):
+                    upload_to_dropbox(c_folder, 'maac/{}_{}'.format(c_run_title, pfx))
+
+    # Standard experiments with varying learning rate
+    var_lr_variations = [1e-3, 1e-2, 1e-1, 1, 1e+1, 1e+2]
+    var_lr_res_folder = os.path.join(maac_results_folder, "lr/")
+    for scenario in scenarios:
+        for lr_var in var_lr_variations:
+            c_run_title = "maac_{0}_lr_{1:1.2e}".format(scenario, lr_var)
+            c_folder = os.path.join(var_lr_res_folder, c_run_title)
+            for pfx in range(args.repeat):
+                ivk_cmd = "python main.py " \
+                          "--env_id={} " \
+                          "--model_name={} " \
+                          "--model_dir={} " \
+                          "--pi_lr={}" \
+                          "--q_lr={}" \
+                    .format(scenario,
+                            scenario,
+                            "{}_{}".format(c_folder, str(pfx)),
+                            lr_var, lr_var)
+                if args.use_gpu:
+                    ivk_cmd += "--use_gpu "
+
+                if execute_command(ivk_cmd):
+                    upload_to_dropbox(c_folder, 'maac/{}_{}'.format(c_run_title, pfx))
+
+    # Default parameters
+    default_scen_folder = os.path.join(maac_results_folder, "default/")
+    for scenario in scenarios:
+        c_run_title = "maac_{}".format(scenario)
+        c_folder = os.path.join(default_scen_folder, c_run_title)
         for pfx in range(args.repeat):
             ivk_cmd = "python main.py " \
                       "--env_id={} " \
                       "--model_name={} " \
                       "--model_dir={} " \
-                      "--buffer_length={}" \
                 .format(scenario,
                         scenario,
-                        "{}_{}".format(c_folder, str(pfx)),
-                        rb_var)
+                        "{}_{}".format(c_folder, str(pfx)))
             if args.use_gpu:
                 ivk_cmd += "--use_gpu "
 
             if execute_command(ivk_cmd):
                 upload_to_dropbox(c_folder, 'maac/{}_{}'.format(c_run_title, pfx))
 
-# Standard experiments with varying gamma
-var_gamma_variations = [0.95, 0.75, 0.50, 0.35, 0.15]
-var_gamma_res_folder = os.path.join(maac_results_folder, "gamma/")
-for scenario in scenarios:
-    for gamma_var in var_gamma_variations:
-        c_run_title = "maac_{0}_gamma_{1:1.2e}".format(scenario, gamma_var)
-        c_folder = os.path.join(var_gamma_res_folder, c_run_title)
-        for pfx in range(args.repeat):
-            ivk_cmd = "python main.py " \
-                      "--env_id={} " \
-                      "--model_name={} " \
-                      "--model_dir={} " \
-                      "--gamma={}"\
-                .format(scenario,
-                        scenario,
-                        "{}_{}".format(c_folder, str(pfx)),
-                        gamma_var)
-            if args.use_gpu:
-                ivk_cmd += "--use_gpu "
-
-            if execute_command(ivk_cmd):
-                upload_to_dropbox(c_folder, 'maac/{}_{}'.format(c_run_title, pfx))
-
-# Standard experiments with varying learning rate
-var_lr_variations = [1e-3, 1e-2, 1e-1, 1, 1e+1, 1e+2]
-var_lr_res_folder = os.path.join(maac_results_folder, "lr/")
-for scenario in scenarios:
-    for lr_var in var_lr_variations:
-        c_run_title = "maac_{0}_lr_{1:1.2e}".format(scenario, lr_var)
-        c_folder = os.path.join(var_lr_res_folder, c_run_title)
-        for pfx in range(args.repeat):
-            ivk_cmd = "python main.py " \
-                      "--env_id={} " \
-                      "--model_name={} " \
-                      "--model_dir={} " \
-                      "--pi_lr={}" \
-                      "--q_lr={}" \
-                .format(scenario,
-                        scenario,
-                        "{}_{}".format(c_folder, str(pfx)),
-                        lr_var, lr_var)
-            if args.use_gpu:
-                ivk_cmd += "--use_gpu "
-
-            if execute_command(ivk_cmd):
-                upload_to_dropbox(c_folder, 'maac/{}_{}'.format(c_run_title, pfx))
-
-# Default parameters
-default_scen_folder = os.path.join(maac_results_folder, "default/")
-for scenario in scenarios:
-    c_run_title = "maac_{}".format(scenario)
-    c_folder = os.path.join(default_scen_folder, c_run_title)
-    for pfx in range(args.repeat):
-        ivk_cmd = "python main.py " \
-                  "--env_id={} " \
-                  "--model_name={} " \
-                  "--model_dir={} " \
-            .format(scenario,
-                    scenario,
-                    "{}_{}".format(c_folder, str(pfx)))
-        if args.use_gpu:
-            ivk_cmd += "--use_gpu "
-
-        if execute_command(ivk_cmd):
-            upload_to_dropbox(c_folder, 'maac/{}_{}'.format(c_run_title, pfx))
+except Exception as exp_err:
+    print(exp_err)
+    write_to_log_ts(traceback.format_exc(), True)

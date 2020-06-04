@@ -3,17 +3,17 @@
 source ~/miniconda/etc/profile.d/conda.sh
 conda activate maac
 
-if [ "$#" -eq 2 ];then
-    if [ "$2" = "gpu" ];then
-        python experiment.py --local-dir /results --r "$1" --use_gpu
+if [ "$#" -eq 3 ];then
+    if [ "$3" = "gpu" ];then
+        python experiment.py --local-dir /results --r "$1" --scenario "$2" --use_gpu
     else
-        python experiment.py --local-dir /results --r "$1"
+        python experiment.py --local-dir /results --r "$1" --scenario "$2"
     fi    
-elif [ "$#" -eq 4 ];then
-    if [ "$4" = "gpu" ];then
-        python experiment.py --local-dir /results --r "$1" --dbox-token "$2" --dbox-dir "$3" --use_gpu
+elif [ "$#" -eq 5 ];then
+    if [ "$5" = "gpu" ];then
+        python experiment.py --local-dir /results --r "$1" --scenario "$2" --dbox-token "$3" --dbox-dir "$4" --use_gpu
     else
-        python experiment.py --local-dir /results --r "$1" --dbox-token "$2" --dbox-dir "$3"
+        python experiment.py --local-dir /results --r "$1" --scenario "$2" --dbox-token "$3" --dbox-dir "$4"
     fi
 else
     echo Incorrect number of arguments >&2

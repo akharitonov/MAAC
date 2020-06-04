@@ -53,4 +53,4 @@ RUN find ${CONDA_PATH} -type d -exec chmod 777 {} \;
 VOLUME ["/results"]
 
 # Run experiments
-ENTRYPOINT /code/scripts/execute_in_conda.sh ${repeats} ${dboxtoken} ${dboxdir} cpu
+ENTRYPOINT /code/scripts/execute_in_conda.sh ${repeats} ${scenario} ${dboxtoken} ${dboxdir} cpu
