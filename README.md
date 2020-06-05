@@ -48,6 +48,7 @@ docker run \
  -e dboxtoken=YOUR_TOKEN \
  -e dboxdir=/epxeriment_1 \
  -e scenario=-1 \
+ -e experiment=-1 \
  --name maac \
  --shm-size=4gb \
  -v maac-vres:/results \
