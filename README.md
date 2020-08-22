@@ -1,3 +1,8 @@
+
+***
+Fork of [shariqiqbal2810/MAAC](https://github.com/shariqiqbal2810/MAAC)
+***
+
 # Multi-Actor-Attention-Critic - code and docker images for running experiments
 
 ## Choose a Docker image to build.
@@ -76,10 +81,6 @@ docker stop maac
 docker rm maac
 ```
 
-
-***
-Fork of [shariqiqbal2810/MAAC](https://github.com/shariqiqbal2810/MAAC)
-***
 ***
 # Original README
 # Multi-Actor-Attention-Critic
